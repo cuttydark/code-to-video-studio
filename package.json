@@ -11,6 +11,7 @@
   },
   "scripts": {
     "setup": "node scripts/setup.mjs",
+    "doctor": "node scripts/doctor.mjs",
     "new": "node scripts/new.mjs",
     "dev": "node scripts/in-project.mjs dev",
     "check": "node scripts/in-project.mjs check",
@@ -33,7 +34,8 @@
     "distribution:explain": "node tools/distribution/cli.mjs explain",
     "distribution:test": "node --test tools/distribution/tests/*.test.mjs",
     "web:encode": "node scripts/web-encode.mjs",
-    "kit:test": "node --test scripts/tests/kit-*.test.mjs",
+    "lint:determinism": "node scripts/lint-determinism.mjs",
+    "kit:test": "node --test scripts/tests/kit-*.test.mjs scripts/tests/determinism-lint.test.mjs",
     "poses": "node scripts/poses.mjs",
     "status": "node scripts/project-status.mjs"
   },

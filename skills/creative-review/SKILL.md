@@ -106,6 +106,17 @@ For a render review, use the existing `pnpm run review <project>` output. Use a 
 3. Record scene, second, evidence path, visible fact, impact, and one concrete fix. Inspect related scenes after finding a repeated issue.
 4. Stop after two repair rounds. Persistent blockers remain `REVISE`; only explicitly accepted warnings may receive `PASS WITH WARNINGS`.
 
+## REVIEW.md must use timestamps
+
+Whether the report is a storyboard round or a render review, every finding line must include:
+
+- scene ID (or `main` / act label);
+- exact second or storyboard interval (e.g. `s02 @ 5.5s`);
+- relative evidence path (`renders/…/frame-….png` or contact-sheet crop);
+- severity + visible fact (not “feels off” / “more cinematic”).
+
+Adjective-only notes are invalid. If images cannot be opened, write `NOT_REVIEWED` and name the limitation. `pnpm run status <project>` treats missing `REVIEW.md` as an incomplete visual gate.
+
 ## Audio and rhythm boundaries
 
 The visual review does not certify audio intelligibility. Existing loudness, peak, silence, music, and ducking checks remain in their current tools. Do not infer word intelligibility from an overall LUFS or dB threshold. Existing rhythm analysis supports the review; do not add a new general rhythm score or global cut-rate rule.

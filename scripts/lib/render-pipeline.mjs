@@ -121,12 +121,22 @@ export function renderProject({ projectDir, hyperframesBin, hyperframesArgs = []
   try {
     const ffmpegCheck = spawnSync("ffmpeg", ["-version"], { stdio: "ignore", shell: false });
     if (ffmpegCheck.error || ffmpegCheck.status !== 0) {
-      throw new Error("Falta ffmpeg o no se puede ejecutar.");
+      throw new Error(
+        "Falta ffmpeg o no se puede ejecutar. Instálalo (apt/brew install ffmpeg) y verifica con `ffmpeg -version`; luego `pnpm run doctor`.",
+      );
+    }
+    const ffprobeCheck = spawnSync("ffprobe", ["-version"], { stdio: "ignore", shell: false });
+    if (ffprobeCheck.error || ffprobeCheck.status !== 0) {
+      throw new Error(
+        "Falta ffprobe o no se puede ejecutar. Forma parte del paquete ffmpeg; instálalo y verifica con `ffprobe -version`.",
+      );
     }
     if (!hyperframesBin || (Array.isArray(hyperframesBin)
       ? !hyperframesBin.length || hyperframesBin.some(value => typeof value !== "string") || !path.isAbsolute(hyperframesBin[0])
       : !path.isAbsolute(hyperframesBin))) {
-      throw new Error("No se encontró el ejecutable de HyperFrames.");
+      throw new Error(
+        "No se encontró el ejecutable de HyperFrames. Desde la raíz del repo: `pnpm install --frozen-lockfile` (devDependency hyperframes).",
+      );
     }
 
     const masterStatus = run(hyperframesBin, [

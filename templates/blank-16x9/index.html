@@ -16,6 +16,8 @@
       <div id="intro" data-composition-id="intro" data-composition-src="compositions/intro.html" data-start="0" data-duration="8" data-track-index="1" data-width="1920" data-height="1080"></div>
     </div>
     <script>
+      // Shell only. Scene motion is in compositions/intro.html — prefer MAFIA.fade / MAFIA.pop
+      // when extending; keep state seek-safe (no unseeded Math.random / Date.now). See docs/reference-poses.md.
       window.__timelines = window.__timelines || {};
       window.__timelines.main = gsap.timeline({ paused: true });
     </script>

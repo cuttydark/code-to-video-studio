@@ -1,12 +1,17 @@
 ---
-authoring: template
+authoring: bespoke
+style: cuaderno-vibrante
+narration_language: es
 ---
 
-# Brief — {{NAME}}
+# BRIEF · {{NAME}}
 
-- **Objetivo:** mostrar cómo la línea dibujada y una cámara sencilla pueden aclarar una idea.
-- **Formato:** 9:16, 1080×1920, 30 fps.
-- **Estilo:** `cuaderno-vibrante`; lee `assets/kit/styles/cuaderno-vibrante/GUIA.md`.
-- **Voz:** ninguna por defecto. La cama de audio del ejemplo es generativa y opcional.
-- **Privacidad:** no se presupone una marca, una mascota, una voz ni archivos personales.
-- **Primera entrega:** adapta el guion y el storyboard a la información real; comprueba cifras y fuentes antes de animar.
+- **Qué:** demo vertical de 12 s que muestra cómo una línea dibujada y una cámara sencilla aclaran una idea con el estilo `cuaderno-vibrante`.
+- **Para quién / canal:** revisión interna del kit y agentes en cold start; Reels / Shorts.
+- **Formato y duración:** 1080×1920 · 12.0 s · 30 fps · tres actos en un canvas (`cuaderno-vibrante-9x16`).
+- **Estilo:** `cuaderno-vibrante` — lee `assets/kit/styles/cuaderno-vibrante/GUIA.md` y `FRAME.md`. Usa `MAFIA.cuadernoVibrante({ ctx, semilla })` (semilla entera ≥ 1); no llames a Rough.js directo.
+- **Voz:** ninguna. La cama de audio procedural del ejemplo es opcional.
+- **Música y sonido:** cama generativa del estilo (opcional); el mensaje se entiende sin audio.
+- **Imprescindibles:** trazo con semilla, cámara viva (`C.camara`), tres lecturas tipográficas, contraste papel/tinta, zona segura vertical.
+- **Evitar:** `Math.random` / `Date.now` / `performance.now` sin seed; storyboard vacío; declarar “listo” sin poses + contact sheet + `REVIEW.md`.
+- **Fecha:** {{DATE}} · kit {{KIT}}

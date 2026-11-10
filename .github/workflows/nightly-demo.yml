@@ -1,0 +1,52 @@
+name: Nightly demo smoke
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install system tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+      - name: Install dependencies
+        run: |
+          corepack enable
+          pnpm --version
+          pnpm install --frozen-lockfile
+      - name: Prepare studio
+        run: pnpm run setup
+      - name: Doctor
+        run: pnpm run doctor
+      - name: Determinism lint
+        run: pnpm run lint:determinism
+      - name: Kit tests
+        run: pnpm run kit:test
+      - name: Check demo
+        run: pnpm run check demo
+      - name: Render demo (smoke)
+        # HyperFrames needs a browser; fail the job if render regresses, but keep logs actionable.
+        run: |
+          pnpm run render demo "nightly smoke" || {
+            echo "::error::Demo render failed. Check HyperFrames/browser logs above; local: pnpm run doctor && pnpm run check demo"
+            exit 1
+          }
+      - name: Contact sheet + QA on latest demo master
+        run: |
+          set -euo pipefail
+          MASTER=$(ls -1 proyectos/demo/renders/demo-v*.mp4 | grep -v redes | sort | tail -n1)
+          echo "Using $MASTER"
+          pnpm run contact-sheet "$MASTER"
+          pnpm run qa "$MASTER"
