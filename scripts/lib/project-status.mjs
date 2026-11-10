@@ -369,6 +369,81 @@ function audioState(projectDir, brief) {
   return { status, tracks: sources.size, plan: musicPlan ? "present" : "unknown", missingAssets: missing };
 }
 
+function collectVisualEvidence(projectDir, renders) {
+  const imageExt = /\.(png|jpe?g|webp)$/i;
+  const snapshots = [];
+  const contactSheets = [];
+  const visit = (directory, relativeBase = "") => {
+    if (!fs.existsSync(directory)) return;
+    let entries;
+    try {
+      entries = fs.readdirSync(directory, { withFileTypes: true });
+    } catch (error) {
+      if (error.code === "ENOENT") return;
+      throw error;
+    }
+    for (const entry of entries) {
+      const rel = relativeBase ? `${relativeBase}/${entry.name}` : entry.name;
+      const absolute = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === "node_modules" || entry.name === ".git") continue;
+        visit(absolute, rel);
+        continue;
+      }
+      if (!entry.isFile() || !imageExt.test(entry.name)) continue;
+      if (/(?:^|\/)(?:hoja\.jpg|.*-contact-sheet\.jpe?g)$/i.test(rel) || /contact-sheet\.jpe?g$/i.test(entry.name)) {
+        contactSheets.push(rel.split(path.sep).join("/"));
+        continue;
+      }
+      // Pose / snapshot evidence: storyboard rounds, HyperFrames snapshots, scene frames.
+      if (
+        /(?:^|\/)(?:snapshots?|storyboard-review)\//i.test(rel)
+        || /(?:frame|scene|pose|snapshot)[-_]?\d/i.test(entry.name)
+        || /\.hyperframes\//i.test(rel)
+      ) {
+        snapshots.push(rel.split(path.sep).join("/"));
+      }
+    }
+  };
+  visit(path.join(projectDir, "renders"), "renders");
+  visit(path.join(projectDir, ".hyperframes"), ".hyperframes");
+
+  const ledgerPath = path.join(renders.directory, "VERSIONES.txt");
+  const ledgerText = readText(ledgerPath);
+  const versiones = {
+    status: ledgerText && ledgerText.trim() ? "present" : "missing",
+    path: "renders/VERSIONES.txt",
+  };
+  const reviewFilesFound = reviewFiles(projectDir);
+  const reviewMd = {
+    status: reviewFilesFound.length ? "present" : "missing",
+    path: reviewFilesFound[0]
+      ? path.relative(projectDir, reviewFilesFound[0]).split(path.sep).join("/")
+      : null,
+    count: reviewFilesFound.length,
+  };
+  return {
+    snapshots: {
+      status: snapshots.length ? "present" : "missing",
+      count: snapshots.length,
+      samples: snapshots.slice(0, 8),
+    },
+    contactSheet: {
+      status: contactSheets.length ? "present" : "missing",
+      count: contactSheets.length,
+      samples: contactSheets.slice(0, 8),
+    },
+    versiones,
+    reviewMd,
+    missing: [
+      snapshots.length ? null : "snapshots",
+      contactSheets.length ? null : "contact-sheet",
+      versiones.status === "present" ? null : "VERSIONES.txt",
+      reviewMd.status === "present" ? null : "REVIEW.md",
+    ].filter(Boolean),
+  };
+}
+
 function nextAction(areas) {
   if (["unknown", "incomplete"].includes(areas.brief.status)) return { id: "complete-brief", command: null, message: "Complete BRIEF.md." };
   if (["unknown", "template"].includes(areas.script.status)) return { id: "write-script", command: null, message: "Write or complete SCRIPT.md." };
@@ -377,6 +452,13 @@ function nextAction(areas) {
   }
   if (["failed", "stale", "unknown"].includes(areas.check.status)) {
     return { id: "run-check", command: `pnpm run check ${areas.projectName}`, message: "Run the HyperFrames check." };
+  }
+  if (areas.visualEvidence?.snapshots?.status === "missing") {
+    return {
+      id: "capture-snapshots",
+      command: `pnpm run snapshot ${areas.projectName} --at <seconds>   # or: pnpm run poses ${areas.projectName} --round 00`,
+      message: "Capture snapshots / poses at scene boundaries before claiming visual review.",
+    };
   }
   if (areas.review.status === "stale" && areas.renders.count > 0) {
     return { id: "review", command: `pnpm run review ${areas.projectName}`, message: "Review the latest numbered render." };
@@ -388,6 +470,30 @@ function nextAction(areas) {
   }
   if (areas.renders.count === 0 && !areas.renders.unversioned.length) {
     return { id: "render", command: `pnpm run render ${areas.projectName} "note"`, message: "Create the first numbered render." };
+  }
+  if (areas.visualEvidence?.versiones?.status === "missing" && areas.renders.count > 0) {
+    return {
+      id: "fix-ledger",
+      command: `pnpm run render ${areas.projectName} "note"`,
+      message: "Missing renders/VERSIONES.txt — create a numbered render so the ledger exists.",
+    };
+  }
+  if (areas.visualEvidence?.contactSheet?.status === "missing" && (areas.renders.count > 0 || areas.renders.unversioned.length)) {
+    const latest = areas.renders.latestVersion
+      ? `proyectos/${areas.projectName}/renders/${areas.projectName}-${areas.renders.latestVersion}.mp4`
+      : `proyectos/${areas.projectName}/renders/${areas.renders.unversioned.at(-1)}`;
+    return {
+      id: "contact-sheet",
+      command: `pnpm run contact-sheet ${latest}`,
+      message: "Create a contact sheet and inspect it before declaring the video done.",
+    };
+  }
+  if (areas.visualEvidence?.reviewMd?.status === "missing" && areas.renders.count > 0) {
+    return {
+      id: "write-review",
+      command: `pnpm run review ${areas.projectName}`,
+      message: "Write REVIEW.md with concrete timestamps (not adjectives) after inspecting frames.",
+    };
   }
   if (["unknown", "stale"].includes(areas.review.status)) {
     return { id: "review", command: `pnpm run review ${areas.projectName}`, message: "Review the latest numbered render." };
@@ -420,6 +526,7 @@ export function deriveProjectStatus(projectDir, studioRoot) {
   const review = latestReview(projectDir, renders);
   const approvals = approvalStates(projectDir, metadata, storyboardText, renders);
   const audio = audioState(projectDir, brief ?? "");
+  const visualEvidence = collectVisualEvidence(projectDir, renders);
   const stale = [];
   if (check.stale) stale.push("check");
   if (review.stale) stale.push("review");
@@ -436,6 +543,7 @@ export function deriveProjectStatus(projectDir, studioRoot) {
     renders: { status: renders.status, versions: renders.versions, latestVersion: renders.latestVersion, count: renders.count, unversioned: renders.unversioned },
     review,
     approvals,
+    visualEvidence,
   };
   return { schemaVersion: 1, project: name, areas, stale, nextStep: nextAction(areas) };
 }

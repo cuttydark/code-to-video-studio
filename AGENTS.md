@@ -123,3 +123,17 @@ Before finalizing:
 - run `pnpm run qa <video.mp4>` to flag long static sections, black frames, loudness, true peak and long silences
 
 The code passing validation is necessary, not sufficient.
+
+## Visual-done checklist (machine-checkable)
+
+Do **not** declare a video finished after `check`/`render` alone. A piece is done only when all of these exist and have been inspected:
+
+1. `pnpm run check <project>` passes (fresh `renders/check.json`).
+2. Snapshots or pose rounds at scene boundaries (`pnpm run snapshot` / `pnpm run poses … --round 00`).
+3. Numbered render + `renders/VERSIONES.txt` ledger (`pnpm run render <project> "note"`).
+4. Contact sheet for the latest MP4 (`pnpm run contact-sheet …`).
+5. `pnpm run qa <video.mp4>` run; note blockers.
+6. `REVIEW.md` with **concrete timestamps** and findings (not taste adjectives). Use the `creative-review` skill; every finding cites scene + second + evidence path.
+7. `pnpm run status <project>` reports no missing visual gates (snapshots, contact sheet, VERSIONES.txt, REVIEW.md).
+
+If any gate is missing, the next step is to produce that artifact — not to claim “render OK”.

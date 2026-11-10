@@ -35,9 +35,13 @@ jobs:
           pnpm run distribution:check
       - name: Prepare studio
         run: pnpm run setup
+      - name: Doctor
+        run: pnpm run doctor
+      - name: Determinism lint
+        run: pnpm run lint:determinism
       - name: Verify public distribution
         run: pnpm run verify
-      - name: Test public templates
-        run: node --test scripts/tests/kit-styles.test.mjs
+      - name: Kit + determinism tests
+        run: pnpm run kit:test
       - name: Validate demo
         run: pnpm run check demo

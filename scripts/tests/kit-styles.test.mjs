@@ -78,6 +78,32 @@ test("every free style and template has public metadata and local runtime depend
   assert.doesNotMatch(vendorSource, /kit\/plugins\/gsap/);
 });
 
+test("every public template ships non-empty BRIEF/SCRIPT/STORYBOARD and reference poses", () => {
+  const publicTemplates = [
+    "starter-9x16",
+    "blank-16x9",
+    "cuaderno-vibrante-9x16",
+    "editorial-motion-16x9",
+    "editorial-motion-9x16",
+  ];
+  for (const id of publicTemplates) {
+    const directory = path.join(ROOT, `templates/${id}`);
+    for (const doc of ["BRIEF.md", "SCRIPT.md", "STORYBOARD.md"]) {
+      const text = fs.readFileSync(path.join(directory, doc), "utf8");
+      assert.ok(text.trim().length > 80, `${id}/${doc} must contain real content, not empty scaffolding`);
+      assert.equal(/\{\{(?:NAME|NOMBRE|DATE|FECHA|KIT|TEMPLATE)\}\}/.test(text) || text.includes(id) || /BRIEF|SCRIPT|STORYBOARD|Guion|Brief/i.test(text), true);
+      assert.doesNotMatch(text, /^\s*$/);
+      // Reject tables that are only empty cells / ellipsis placeholders.
+      const emptyRows = text.split(/\r?\n/).filter((line) => /^\|\s*\d+\s*\|\s*(?:\|\s*)+$/.test(line) || /\|\s*\.\.\.\s*\|/.test(line));
+      assert.equal(emptyRows.length, 0, `${id}/${doc} still has empty storyboard/script rows`);
+    }
+    const poses = path.join(directory, "docs/reference-poses.md");
+    assert.ok(fs.existsSync(poses), `${id} must document reference poses in docs/reference-poses.md`);
+    const poseText = fs.readFileSync(poses, "utf8");
+    assert.match(poseText, /\d+(?:\.\d+)?\s*s|snapshot|--at/, `${id} reference poses must list capture times`);
+  }
+});
+
 test("public project templates do not depend on private brands, voices, or characters", () => {
   for (const id of expectedTemplates) {
     const directory = path.join(ROOT, `templates/${id}`);

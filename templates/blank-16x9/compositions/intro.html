@@ -21,8 +21,18 @@
       </div>
       <script>
         (() => {
+          // Prefer MAFIA.fade / MAFIA.pop when this blank grows past a single fromTo.
           const tl = gsap.timeline({ paused: true });
           tl.fromTo("#intro-title", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" });
+          if (window.MAFIA?.fade) {
+            MAFIA.fade(tl, "#intro-eyebrow", 0.15, 0.4);
+            MAFIA.fade(tl, "#intro-description", 0.55, 0.45);
+            MAFIA.fade(tl, "#intro-rule", 0.9, 0.35);
+          } else {
+            tl.fromTo("#intro-eyebrow", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.15);
+            tl.fromTo("#intro-description", { opacity: 0 }, { opacity: 1, duration: 0.45 }, 0.55);
+            tl.fromTo("#intro-rule", { opacity: 0, scaleX: 0.4 }, { opacity: 1, scaleX: 1, duration: 0.35, ease: "power2.out" }, 0.9);
+          }
           window.__timelines["intro"] = tl;
         })();
       </script>

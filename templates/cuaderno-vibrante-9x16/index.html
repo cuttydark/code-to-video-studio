@@ -21,6 +21,8 @@
   </div>
   <script>
   (() => {
+    // Seeded cuaderno runtime — MAFIA.cuadernoVibrante only (no rough.* / Math.random).
+    // Pose times: docs/reference-poses.md
     const canvas = document.getElementById("cuaderno");
     const ctx = canvas.getContext("2d");
     const C = MAFIA.cuadernoVibrante({ ctx, semilla: 31 });

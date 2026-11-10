@@ -48,6 +48,8 @@ function humanOutput(status, approvalRecorded = null) {
   const findingCounts = areas.review.findings
     ? `${areas.review.findings.blockers} blockers, ${areas.review.findings.warnings} warnings, ${areas.review.findings.info} info`
     : "counts unknown";
+  const evidence = areas.visualEvidence;
+  const missingEvidence = evidence?.missing?.length ? evidence.missing.join(", ") : "none";
   const lines = [
     `Production status: ${status.project}`,
     `Brief: ${areas.brief.status} (authoring ${areas.brief.authoring}; reference ${ref})`,
@@ -55,8 +57,10 @@ function humanOutput(status, approvalRecorded = null) {
     `Script: ${areas.script.status}`,
     `Storyboard: ${areas.storyboard.status} (${rows}; approval ${areas.approvals.storyboard.status})`,
     `Audio: ${areas.audio.status} (${areas.audio.tracks} HTML tracks; plan ${areas.audio.plan})`,
-   `Check: ${areas.check.status}`,
+    `Check: ${areas.check.status}`,
     `Renders: ${areas.renders.count} numbered version(s), ${areas.renders.unversioned.length} unnumbered; latest ${areas.renders.latestVersion ?? "unknown"}`,
+    `Visual evidence: snapshots ${evidence?.snapshots?.status ?? "unknown"} (${evidence?.snapshots?.count ?? 0}); contact sheet ${evidence?.contactSheet?.status ?? "unknown"}; VERSIONES.txt ${evidence?.versiones?.status ?? "unknown"}; REVIEW.md ${evidence?.reviewMd?.status ?? "unknown"}`,
+    `Missing visual gates: ${missingEvidence}`,
     `Review: ${areas.review.status}${areas.review.renderVersion ? ` on ${areas.review.renderVersion}` : ""} (${findingCounts}; approval ${areas.approvals.render.status})`,
     `Stale results: ${status.stale.length ? status.stale.join(", ") : "none"}`,
     `Next step: ${status.nextStep.message}`,

@@ -108,6 +108,23 @@ It is **give an agent enough structure, reusable creative primitives and feedbac
 
 ---
 
+## Happy path (clone → first MP4)
+
+Eight commands. If anything fails, run `pnpm run doctor` and follow the exact fix it prints.
+
+```bash
+git clone https://github.com/alexdcd/code-to-video-studio.git
+cd code-to-video-studio
+pnpm install --frozen-lockfile
+pnpm run doctor          # Node 22+, pnpm pin, ffmpeg/ffprobe, Python 3, HyperFrames, kit
+pnpm run setup           # vendor + build kit + copy into proyectos/
+pnpm run new starter-9x16 my-video
+pnpm run check my-video
+pnpm run render my-video "first pass"
+```
+
+Then finish the visual loop (not optional for “done”): snapshots → contact sheet → `qa` → `REVIEW.md` → `pnpm run status my-video`. See `AGENTS.md` checklist. Troubleshooting: re-run `pnpm run doctor`; setup/render errors name the missing tool and the exact command to fix it.
+
 ## Quick start
 
 Requirements:
@@ -123,6 +140,7 @@ git clone https://github.com/alexdcd/code-to-video-studio.git
 cd code-to-video-studio
 
 pnpm install --frozen-lockfile
+pnpm run doctor
 pnpm run setup
 
 pnpm run new starter-9x16 my-video
